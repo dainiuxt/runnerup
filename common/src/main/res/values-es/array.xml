@@ -1,8 +1,12 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<resources xmlns:tools="http://schemas.android.com/tools">
+<resources>
   <string-array name="unitEntries">
     <item>Millas</item>
     <item>Kilómetros</item>
+  </string-array>
+  <string-array name="speedUnitEntries">
+    <item>Ritmo</item>
+    <item>Velocidad</item>
   </string-array>
   <!--Note: keep in same order as DB.INTENSITY-->
   <string-array name="step_intensity_types">
@@ -12,39 +16,23 @@
     <item>Recuperación</item>
     <item>Enfriamiento</item>
   </string-array>
-  <!--same order as above, same values as Intensity-->
   <string-array name="duration_types">
-    <item>Until pressed</item>
+    <item>Hasta pulsación</item>
     <item>Tiempo</item>
     <item>Distancia</item>
   </string-array>
-  <!--same order as above, same values as Dimension-->
   <string-array name="target_types">
     <item>Ninguno</item>
-    <item>Paso</item>
-    <item>Frecuencia cardiaca</item>
+    <item>Ritmo</item>
+    <item>Zona de frecuencia cardíaca</item>
   </string-array>
-  <!--Note: same order as above, same values as Dimension-->
   <!--Note: keep in same order as DB.ACCOUNT.SPORT_-->
   <string-array name="sportEntries">
     <item>Carrera</item>
     <item>Ciclismo</item>
     <item>Otro</item>
-  </string-array>
-  <string-array name="sportEntriesExperimental">
-    <item>Carrera</item>
-    <item>Ciclismo</item>
-    <item>Otro</item>
     <item>Orientación</item>
     <item>Caminar</item>
-  </string-array>
-  <string-array name="muteEntries">
-    <item>No</item>
-    <item>Si</item>
-  </string-array>
-  <string-array name="muteValues">
-    <item>no</item>
-    <item>si</item>
   </string-array>
   <string-array name="types">
     <item>Tiempo</item>
@@ -54,20 +42,9 @@
     <item>Hombre</item>
     <item>Mujer</item>
   </string-array>
-  <!--Audio cue languages-->
-  <string-array name="cueLanguageNames">
-    <item>Inglés</item>
-    <item>Holandés</item>
-    <item>Alemán</item>
-    <item>Japonés</item>
-    <item>Árabe</item>
-    <item>Ruso</item>
-    <item>Español</item>
-    <item>Francés</item>
-    <item>Italiano</item>
-    <item>Polaco</item>
-    <item>Turco</item>
-    <item>Portugues</item>
+  <!--Note: keep in same order as DB-->
+  <string-array name="path_simplification_algorithm_titles">
+    <item>Distancia-Radial (rápido)</item>
+    <item>Ramer-Douglas-Peucker (alta calidad)</item>
   </string-array>
-  <!--Note: keep in same order as languagesNames-->
 </resources>

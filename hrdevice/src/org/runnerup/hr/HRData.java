@@ -1,7 +1,6 @@
 package org.runnerup.hr;
 
-import android.annotation.TargetApi;
-import android.os.Build;
+import androidx.annotation.NonNull;
 
 import java.util.Arrays;
 
@@ -36,29 +35,28 @@ import java.util.Arrays;
  * }
  * </pre>
  */
-@TargetApi(Build.VERSION_CODES.FROYO)
+
 public class HRData {
     
     public boolean hasHeartRate = false;
     public long hrValue = -1;
-    public boolean timeStampIsFromDevice = false;
+    private boolean timeStampIsFromDevice = false;
     public long timestamp = -1;
-    public boolean hasRrIntervals = false;
-    public long[] rrIntervals = null;
+    private boolean hasRrIntervals = false;
+    private long[] rrIntervals = null;
 
+    @NonNull
     @Override
     public String toString() {
-        final StringBuffer sb = new StringBuffer("HRData{");
-        sb.append(", hrValue=").append((hasHeartRate ? hrValue : "<no_heart_rate_data>"))
-                .append('\n');
-        sb.append(", timeStampIsFromDevice=").append(timeStampIsFromDevice)
-                .append('\n');
-        sb.append(", timestamp=").append(timestamp)
-                .append('\n');
-        sb.append(", rrIntervals=").append((hasRrIntervals ? Arrays.toString(rrIntervals) : "<no_rr_interval_data>"))
-                .append('\n');
-        sb.append('}');
-        return sb.toString();
+        return "HRData{" + ", hrValue=" + (hasHeartRate ? hrValue : "<no_heart_rate_data>") +
+                '\n' +
+                ", timeStampIsFromDevice=" + timeStampIsFromDevice +
+                '\n' +
+                ", timestamp=" + timestamp +
+                '\n' +
+                ", rrIntervals=" + (hasRrIntervals ? Arrays.toString(rrIntervals) : "<no_rr_interval_data>") +
+                '\n' +
+                '}';
     }
 
     public HRData setHeartRate(long heartRate){

@@ -17,10 +17,9 @@
   -->
 
 <android.support.wearable.view.BoxInsetLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/black"
     android:padding="0dp">
 
     <LinearLayout
@@ -32,7 +31,6 @@
         >
 
         <LinearLayout
-            android:id="@+id/layout2"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
@@ -40,19 +38,19 @@
             android:orientation="vertical" >
 
             <TextView
-                android:id="@+id/textViewHeader2"
-                android:text="distance"
+                android:id="@+id/textViewHeader32"
+                android:text="@string/distance"
                 style="@style/Card3TextSmall" />
 
             <TextView
-                android:id="@+id/textView2"
+                android:id="@+id/textView32"
                 android:text="-.--"
-                style="@style/Card3TextMedium" />
+                style="@style/Card3TextMedium"
+                tools:ignore="HardcodedText" />
 
         </LinearLayout>
 
         <LinearLayout
-            android:id="@+id/layout1"
             android:orientation="vertical"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
@@ -61,19 +59,19 @@
             android:background="@drawable/border" >
 
                 <TextView
-                    android:id="@+id/textViewHeader1"
-                    android:text="time"
+                    android:id="@+id/textViewHeader31"
+                    android:text="@string/time"
                     style="@style/Card3TextSmall" />
 
                 <TextView
-                    android:id="@+id/textView1"
+                    android:id="@+id/textView31"
                     android:text="--:--"
-                    style="@style/Card3TextLarge" />
+                    style="@style/Card3TextLarge"
+                    tools:ignore="HardcodedText" />
 
         </LinearLayout>
 
         <LinearLayout
-            android:id="@+id/layout3"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
@@ -82,14 +80,15 @@
             android:background="@drawable/border" >
 
             <TextView
-                android:id="@+id/textViewHeader3"
-                android:text="lap pace"
+                android:id="@+id/textViewHeader33"
+                android:text="@string/Lap_pace"
                 style="@style/Card3TextSmall" />
 
             <TextView
-                android:id="@+id/textView3"
+                android:id="@+id/textView33"
                 android:text="-:--"
-                style="@style/Card3TextMedium" />
+                style="@style/Card3TextMedium"
+                tools:ignore="HardcodedText" />
 
         </LinearLayout>
 

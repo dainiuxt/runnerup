@@ -16,15 +16,15 @@
  */
 package org.runnerup.service;
 
-import android.annotation.TargetApi;
 import android.app.Notification;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
-import android.support.v4.app.NotificationCompat;
-import android.support.v4.app.NotificationManagerCompat;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
 
 import com.google.android.gms.wearable.DataEvent;
 import com.google.android.gms.wearable.DataEventBuffer;
@@ -34,10 +34,10 @@ import org.runnerup.R;
 import org.runnerup.common.util.Constants;
 import org.runnerup.view.MainActivity;
 
-@TargetApi(Build.VERSION_CODES.KITKAT_WATCH)
+
 public class ListenerService extends WearableListenerService {
 
-    private int notificationId = 10;
+    private final int notificationId = 10;
 
     @Override
     public void onCreate() {
@@ -76,12 +76,38 @@ public class ListenerService extends WearableListenerService {
         }
     }
 
+    private static NotificationChannel mChannel;
+    /**
+     * Android 8.0 notification channel
+     * @param context
+     * @return
+     */
+    public static String getChannelId(Context context) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            if (mChannel == null) {
+                NotificationManager notificationManager =
+                        (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+                String id = "runnerup_ongoing";
+                CharSequence name = context.getString(R.string.app_name);
+                String description = context.getString(R.string.channel_notification_ongoing);
+                int importance = NotificationManager.IMPORTANCE_HIGH;
+                mChannel = new NotificationChannel(id, name, importance);
+                mChannel.setDescription(description);
+                mChannel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
+                mChannel.setBypassDnd(true);
+                notificationManager.createNotificationChannel(mChannel);
+            }
+            return mChannel.getId();
+        }
+        return "unused prior to Oreo";
+    }
+
     private void showNotification() {
         // this intent will open the activity when the user taps the "open" action on the notification
         Intent viewIntent = new Intent(this, MainActivity.class);
         PendingIntent pendingViewIntent = PendingIntent.getActivity(this, 0, viewIntent, 0);
-
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
+        String chanId = getChannelId(this);
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, chanId)
                 .setSmallIcon(R.drawable.ic_launcher)
                 .setContentTitle(getString(R.string.app_name))
                 .setContentText(getString(R.string.Start))

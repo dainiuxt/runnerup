@@ -1,10 +1,9 @@
 package org.runnerup.hr;
 
-import android.annotation.TargetApi;
-import android.app.Activity;
-import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 /**
  * Created by jonas on 11/9/14.
@@ -19,7 +18,7 @@ import android.os.Looper;
  *   if loosing connection when connected,
  *   it will auto connect
  */
-@TargetApi(Build.VERSION_CODES.FROYO)
+
 public class RetryingHRProviderProxy implements HRProvider, HRProvider.HRClient {
 
     private HRDeviceRef connectRef;
@@ -38,8 +37,6 @@ public class RetryingHRProviderProxy implements HRProvider, HRProvider.HRClient 
     }
 
     private int attempt = 0;
-    private final int kMaxConnectRetries = 3;
-    private final int kMaxReconnectRetires = 10;
     private final HRProvider provider;
     private HRClient client = null;
     private Handler handler = null;
@@ -58,18 +55,16 @@ public class RetryingHRProviderProxy implements HRProvider, HRProvider.HRClient 
             case ERROR:
                 return 0;
             case CONNECTING:
-                return kMaxConnectRetries;
+                return 3; //kMaxConnectRetries
             case RECONNECTING:
-                return kMaxReconnectRetires;
+                return 10; //kMaxReconnectRetries
         }
         return 0;
     }
 
     private boolean checkMaxAttempts() {
         attempt++;
-        if (attempt > getMaxRetries())
-            return false;
-        return true;
+        return attempt <= getMaxRetries();
     }
 
     private int getRetryDelayMillis() {
@@ -86,7 +81,7 @@ public class RetryingHRProviderProxy implements HRProvider, HRProvider.HRClient 
             case CONNECTING:
                 return 750 * (attempt - 1);
             case RECONNECTING:
-                return 3000 * (attempt < 6 ? attempt : 6);
+                return 3000 * (Math.min(attempt, 6));
         }
         return 0;
     }
@@ -113,7 +108,7 @@ public class RetryingHRProviderProxy implements HRProvider, HRProvider.HRClient 
     }
 
     @Override
-    public boolean startEnableIntent(Activity activity, int requestCode) {
+    public boolean startEnableIntent(AppCompatActivity activity, int requestCode) {
         return provider.startEnableIntent(activity, requestCode);
     }
 
@@ -135,13 +130,12 @@ public class RetryingHRProviderProxy implements HRProvider, HRProvider.HRClient 
             return;
         }
 
-        if (ok == true) {
+        if (ok) {
             state = State.OPENED;
-            client.onOpenResult(ok);
         } else {
             state = State.CLOSED;
-            client.onOpenResult(ok);
         }
+        client.onOpenResult(ok);
     }
 
     @Override
@@ -229,7 +223,6 @@ public class RetryingHRProviderProxy implements HRProvider, HRProvider.HRClient 
                 log("client.onConnectResult(true)");
                 client.onConnectResult(true);
             }
-            return;
         } else {
             if (!checkMaxAttempts()) {
                 state = State.OPENED;
@@ -241,15 +234,11 @@ public class RetryingHRProviderProxy implements HRProvider, HRProvider.HRClient 
 
             int delayMillis = getRetryDelayMillis();
             log("retry in " + delayMillis + "ms");
-            handler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    log("retry connect");
-                    provider.connect(connectRef);
-                }
+            handler.postDelayed(() -> {
+                log("retry connect");
+                provider.connect(connectRef);
             }, delayMillis);
 
-            return;
         }
     }
 
@@ -269,6 +258,11 @@ public class RetryingHRProviderProxy implements HRProvider, HRProvider.HRClient 
     @Override
     public long getHRValueTimestamp() {
         return provider.getHRValueTimestamp();
+    }
+
+    @Override
+    public long getHRValueElapsedRealtime() {
+        return provider.getHRValueElapsedRealtime();
     }
 
     @Override
@@ -302,14 +296,16 @@ public class RetryingHRProviderProxy implements HRProvider, HRProvider.HRClient 
 
         state = State.OPENED;
         requestedState = State.OPENED;
-        client.onDisconnectResult(disconnectOK);
+        if (client != null)
+            client.onDisconnectResult(disconnectOK);
     }
 
     @Override
     public void onCloseResult(boolean closeOK) {
         state = State.CLOSED;
         requestedState = State.CLOSED;
-        client.onConnectResult(closeOK);
+        if (client != null)
+            client.onConnectResult(closeOK);
     }
 
     @Override
@@ -317,27 +313,21 @@ public class RetryingHRProviderProxy implements HRProvider, HRProvider.HRClient 
         log(msg);
     }
 
-    public void log(final String msg) {
-        StringBuilder str = new StringBuilder();
-        str.append("[ RetryingHRProviderProxy: ").
-                append(provider.getProviderName()).
-                append(", attempt: ").append(Integer.toString(attempt)).
-                append(" ]");
+    private void log(final String msg) {
 
-        str.append(", state: " + state + ", request: " + requestedState +
-                ", " + msg);
-        String res = str.toString();
+        String res = "[ RetryingHRProviderProxy: " +
+                provider.getProviderName() +
+                ", attempt: " + attempt +
+                " ]" +
+                ", state: " + state + ", request: " + requestedState + ", " + msg;
         System.err.println(res);
         if (client != null) {
             if(Looper.myLooper() == Looper.getMainLooper()) {
                 client.log(this, msg);
             } else {
-                handler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (client != null)
-                            client.log(RetryingHRProviderProxy.this, msg);
-                    }
+                handler.post(() -> {
+                    if (client != null)
+                        client.log(RetryingHRProviderProxy.this, msg);
                 });
             }
         }

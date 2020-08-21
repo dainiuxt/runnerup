@@ -16,10 +16,8 @@
  */
 package org.runnerup.view;
 
-import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.Fragment;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.wearable.view.CircledImageView;
@@ -32,14 +30,13 @@ import org.runnerup.R;
 import org.runnerup.common.tracker.TrackerState;
 import org.runnerup.common.util.ValueModel;
 
-@TargetApi(Build.VERSION_CODES.KITKAT_WATCH)
+
 public class PauseResumeFragment extends Fragment implements ValueModel.ChangeListener<TrackerState> {
 
     private static final long SCROLL_DELAY = 1500; // 1.5s
-    private Handler handler = new Handler();
+    private final Handler handler = new Handler();
     private TextView mButtonPauseResumeTxt;
     private CircledImageView mButtonPauseResume;
-    private TextView mButtonNewLapTxt;
     private CircledImageView mButtonNewLap;
     private MainActivity activity;
     private long clickCount = 0;
@@ -48,21 +45,16 @@ public class PauseResumeFragment extends Fragment implements ValueModel.ChangeLi
     }
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-    }
-
-    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.newlap_pause_resume, container, false);
         super.onViewCreated(view, savedInstanceState);
 
-        mButtonPauseResume = (CircledImageView) view.findViewById(R.id.icon_resume);
+        mButtonPauseResume = view.findViewById(R.id.icon_resume);
         mButtonPauseResume.setOnClickListener(pauseButtonClick);
-        mButtonPauseResumeTxt = (TextView) view.findViewById(R.id.txt_resume);
-        mButtonNewLap = (CircledImageView) view.findViewById(R.id.icon_newlap);
+        mButtonPauseResumeTxt = view.findViewById(R.id.txt_resume);
+        mButtonNewLap = view.findViewById(R.id.icon_newlap);
         mButtonNewLap.setOnClickListener(newLapButtonClick);
-        mButtonNewLapTxt = (TextView) view.findViewById(R.id.txt_newlap);
+        //TextView buttonNewLapTxt = (TextView) view.findViewById(R.id.txt_newlap);
 
         return view;
     }
@@ -96,7 +88,7 @@ public class PauseResumeFragment extends Fragment implements ValueModel.ChangeLi
         mButtonPauseResume.setEnabled(false);
     }
 
-    private View.OnClickListener pauseButtonClick = new View.OnClickListener() {
+    private final View.OnClickListener pauseButtonClick = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
             clickCount++;
@@ -120,7 +112,7 @@ public class PauseResumeFragment extends Fragment implements ValueModel.ChangeLi
         }
     };
 
-    private View.OnClickListener newLapButtonClick = new View.OnClickListener() {
+    private final View.OnClickListener newLapButtonClick = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
             clickCount++;

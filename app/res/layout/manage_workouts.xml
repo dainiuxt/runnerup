@@ -16,10 +16,9 @@
   ~  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -->
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/relative_layout1"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical" >
+    android:orientation="vertical">
 
     <ExpandableListView
         android:id="@+id/expandable_list_view"
@@ -27,9 +26,10 @@
         android:layout_height="match_parent"
         android:layout_alignParentTop="true"
         android:layout_alignParentEnd="false"
+        android:layout_alignParentRight="false"
+        android:layout_alignParentLeft="false"
         android:layout_alignParentStart="false"
-        android:layout_above="@+id/button_table">
-    </ExpandableListView>
+        android:layout_above="@+id/button_table" />
 
   <TableLayout
     android:id="@+id/button_table"
@@ -38,8 +38,8 @@
     android:layout_alignParentBottom="true">
 
     <TableRow
-      android:layout_width="fill_parent"
-      android:layout_height="fill_parent">
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content">
 
       <Button
           android:id="@+id/download_workout_button"
@@ -47,26 +47,26 @@
           android:background="@drawable/btn_blue"
           android:layout_width="0dp"
           android:layout_weight="1"
-          android:layout_height="wrap_content"
+          android:layout_height="match_parent"
           android:text="@string/Download"
           android:textSize="16sp"
-  />
+      />
 
       <Button
-              android:id="@+id/share_workout_button"
-              style="@style/ButtonText"
-              android:background="@drawable/btn_blue"
-              android:layout_width="0dp"
-              android:layout_weight="1"
-              android:layout_height="wrap_content"
-              android:text="@string/Share"
-              android:textSize="16sp"
+          android:id="@+id/share_workout_button"
+          style="@style/ButtonText"
+          android:background="@drawable/btn_blue"
+          android:layout_width="0dp"
+          android:layout_weight="1"
+          android:layout_height="match_parent"
+          android:text="@string/Share"
+          android:textSize="16sp"
       />
     </TableRow>
 
     <TableRow
-      android:layout_width="fill_parent"
-      android:layout_height="fill_parent">
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content">
 
       <Button
           android:id="@+id/create_workout_button"
@@ -74,7 +74,7 @@
           android:background="@drawable/btn_green"
           android:layout_width="0dp"
           android:layout_weight="1"
-          android:layout_height="wrap_content"
+          android:layout_height="match_parent"
           android:text="@string/Create"
           android:textSize="16sp"
           android:clickable="false"
@@ -86,7 +86,7 @@
           android:background="@drawable/btn_red"
           android:layout_width="0dp"
           android:layout_weight="1"
-          android:layout_height="wrap_content"
+          android:layout_height="match_parent"
           android:text="@string/Delete"
           android:textSize="16sp"
           />

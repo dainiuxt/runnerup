@@ -17,10 +17,9 @@
 
 package org.runnerup.hr;
 
-import android.annotation.TargetApi;
-import android.app.Activity;
-import android.os.Build;
 import android.os.Handler;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 /**
  * {@link HRProvider}'s provide an interface to a wireless connectivity module (Bluetooth, ANT+ etc)
@@ -30,54 +29,54 @@ import android.os.Handler;
  *
  * @author jonas
  */
-@TargetApi(Build.VERSION_CODES.FROYO)
+
 public interface HRProvider {
 
     /**
      * An interface through which the client of the {@link HRProvider}
      * is notified of changes to the state of the {@link HRProvider}
      */
-    public interface HRClient {
-        public void onOpenResult(boolean ok);
+    interface HRClient {
+        void onOpenResult(boolean ok);
 
-        public void onScanResult(HRDeviceRef device);
+        void onScanResult(HRDeviceRef device);
 
-        public void onConnectResult(boolean connectOK);
+        void onConnectResult(boolean connectOK);
 
-        public void onDisconnectResult(boolean disconnectOK);
+        void onDisconnectResult(boolean disconnectOK);
 
-        public void onCloseResult(boolean closeOK);
+        void onCloseResult(boolean closeOK);
 
-        public void log(HRProvider src, String msg);
+        void log(HRProvider src, String msg);
     }
 
     /**
      * @return A human readable name for the {@link HRProvider}
      */
-    public abstract String getName();
+    String getName();
 
     /**
      * @return An internal name for a specific {@link HRProvider} instantiation
      */
-    public abstract String getProviderName(); // For internal usage
+    String getProviderName(); // For internal usage
 
 
     /**
      * @return true if the wireless module is enabled,
      *          false otherwise
      */
-    public abstract boolean isEnabled();
+    boolean isEnabled();
 
     /**
      * Presents the user if the settings screen to enable the provider's protocol. When this is done,
-     * 'activity' will have {@link Activity#onActivityResult(int, int, android.content.Intent)} called
+     * 'activity' will have  called
      *
-     * @param activity The {@link Activity} currently being displayed to the user
+     * @param activity The {@link AppCompatActivity} currently being displayed to the user
      * @param requestCode An arbitrary code that will be given to
-     *                  {@link Activity#onActivityResult(int, int, android.content.Intent)}
+     *
      * @return true if the intent was sent
      */
-    public abstract boolean startEnableIntent(Activity activity, int requestCode);
+    boolean startEnableIntent(AppCompatActivity activity, int requestCode);
 
     /**
      * Initialises the wireless module, allowing device scanning/connection
@@ -85,12 +84,12 @@ public interface HRProvider {
      * @param handler The Handler in which to run the hrClient
      * @param hrClient The object that will be notified when operations have finished
      */
-    public abstract void open(Handler handler, HRClient hrClient);
+    void open(Handler handler, HRClient hrClient);
 
     /**
      * Closes the wireless module
      */
-    public abstract void close();
+    void close();
 
     /**
      * A bonding device is a wireless module that requires devices to be
@@ -99,70 +98,78 @@ public interface HRProvider {
      * @return true if the wireless module is a bonding device,
      *          false otherwise
      */
-    public abstract boolean isBondingDevice();
+    boolean isBondingDevice();
 
     /**
      * @return true if this {@link HRProvider} is currently scanning for available devices,
      *          false otherwise
      */
-    public abstract boolean isScanning();
+    boolean isScanning();
 
     /**
      * @return true if this {@link HRProvider} is connected to a heart rate device,
      *          false otherwise
      */
-    public abstract boolean isConnected();
+    boolean isConnected();
 
     /**
      * @return true if this {@link HRProvider} is currently connecting to a heart rate device,
      *          false otherwise
      */
-    public abstract boolean isConnecting();
+    boolean isConnecting();
 
     /**
      * Starts scanning for available heart rate devices. Results will be passed to the HRClient
      * supplied in {@link #open(android.os.Handler, org.runnerup.hr.HRProvider.HRClient)}
      */
-    public abstract void startScan();
+    void startScan();
 
     /**
      * Stops scanning for available heart rate devices. When done, the {@link HRClient} passed
      * in {@link #open(android.os.Handler, org.runnerup.hr.HRProvider.HRClient)} will be notified
      */
-    public abstract void stopScan();
+    void stopScan();
 
     /**
      * Connects to a heart rate monitor device
      * @param ref An object representing a heart rate device. Client code can get
      *            available device information through startScan()
      */
-    public abstract void connect(HRDeviceRef ref);
+    void connect(HRDeviceRef ref);
 
     /**
      * Disconnects from a heart rate monitor device
      */
-    public abstract void disconnect();
+    void disconnect();
 
     /**
      * @return the most recent heart rate value supplied by the connected device.
      *          0 indicates that no device has been connected (or the user is in a very bad way)
      */
-    public abstract int getHRValue();
+    int getHRValue();
 
     /**
      * @return the unix time of the last received heart rate value
      */
-    public abstract long getHRValueTimestamp();
+    long getHRValueTimestamp();
+
+    /**
+     * Get the time for the sensor, comparable with other sources as getTime()
+     * differs for system vs GPS time
+     *
+     * @return the elapsed time sinc boot in nano sec for last received value
+     */
+    long getHRValueElapsedRealtime();
 
     /**
      * @return the most recent heart rate data supplied by the device. If no device has
      *          been connected, this will be null
      */
-    public abstract HRData getHRData();
+    HRData getHRData();
 
     /**
      * @return The battery level, in percents, of the heart rate monitor device or 0 if
      *          no device has been connected or the device doesn't supply battery information
      */
-    public abstract int getBatteryLevel();
+    int getBatteryLevel();
 }

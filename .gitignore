@@ -1,26 +1,5 @@
-# built application files
-*.apk
-*.ap_
-
-# files for the dex VM
-*.dex
-
-# Java class files
-*.class
-
-# generated files
-bin/
-gen/
-
 # Local configuration file (sdk path, etc)
 local.properties
-
-# Eclipse project files
-.classpath
-.project
-
-# imported code
-libs/
 
 # Gedit temp files
 *~
@@ -29,14 +8,19 @@ libs/
 .gradle/
 .idea/
 build/
+gen/
+
+#app bundle files
+*.aab
 
 # Intellij files (Android Studio)
 *.iml
-
-lint.xml
 
 # NetBeans IDE project files
 /.nb-gradle/private/
 
 # Release signing property file
 release.properties
+/mapbox.properties
+/runalyze.properties
+/dropbox.properties

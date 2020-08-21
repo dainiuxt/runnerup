@@ -16,9 +16,41 @@
   ~  along with this program.  If not, see <http://www.gnu.org/licenses/>.
   -->
 <resources>
-     <color name="black">#000</color>
-     <color name="blue">#00f</color>
-     <color name="red">#f00</color>
-     <color name="green">#0f8</color>
-     <color name="workoutbg">#171717</color>
+     <color name="subsectionBg">#212121</color>
+     <color name="colorPrimaryDark">#003366</color>
+     <color name="colorPrimary">#004282</color>
+     <color name="colorAccent">#53B1FC</color>
+     <color name="colorText">#ffffff</color>
+     <color name="colorTextSecondary">#b3ffffff</color>
+
+     <color name="colorPrimaryFab">#0066B7</color>
+     <color name="colorBottomNav">#212121</color>
+
+     <color name="serviceDefault">#003366</color>
+     <color name="serviceDropbox">#0D2481</color>
+     <color name="serviceEndomondo">#87AA14</color>
+     <color name="serviceFacebook">#3b5998</color>
+     <color name="serviceGarmin">#0172AD</color>
+     <color name="serviceGoogleFit">#DD5144</color>
+     <color name="serviceJogg">#29AA2D</color>
+     <color name="serviceMapMyRun">#0077C0</color>
+     <color name="serviceRunalyze">#67B14C</color>
+     <color name="serviceRunkeeper">#3CC2D2</color>
+     <color name="serviceRunnerUpLive">#003366</color>
+     <color name="serviceRunningAhead">#336699</color>
+     <color name="serviceRuntastic">#0067B0</color>
+     <color name="serviceStrava">#FC4C02</color>
+  
+     <color name="stepActive">#ff978e</color>
+     <color name="stepCooldown">#80DEEA</color>
+     <color name="stepRecovery">#DCE775</color>
+     <color name="stepRepeat">#E0E0E0</color>
+     <color name="stepResting">#75D4FF</color>
+     <color name="stepWarmup">#FFB74D</color>
+
+     <color name="sportBiking">#FEBC5A</color>
+     <color name="sportOrienteering">#FFB38E</color>
+     <color name="sportRunning">#46FFBE</color>
+     <color name="sportWalking">#ACBFFF</color>
+     <color name="sportOther">#FFD95C</color>
 </resources>

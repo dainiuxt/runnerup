@@ -1,18 +1,23 @@
 apply plugin: 'com.android.application'
 
-
 android {
-    compileSdkVersion 22
-    buildToolsVersion '22.0.1'
+    compileSdkVersion rootProject.ext.compileSdkVersion
+    buildToolsVersion rootProject.ext.buildToolsVersion
 
     defaultConfig {
-        minSdkVersion 20
-        targetSdkVersion 22
-        versionName "1.50"
-        versionCode 14000050
+        minSdkVersion 23
+        targetSdkVersion rootProject.ext.compileSdkVersion
+        versionName rootProject.ext.versionName
+        versionCode rootProject.ext.latestBaseVersionCode + rootProject.ext.versionCode
+    }
+
+    dexOptions {
+        // Skip pre-dexing when running on Travis CI or when disabled via -Dpre-dex=false.
+        preDexLibraries = preDexEnabled && !travisBuild
     }
 
     signingConfigs {
+        //noinspection GroovyMissingReturnStatement
         release {
         }
     }
@@ -25,13 +30,35 @@ android {
             signingConfig signingConfigs.release
         }
     }
+
+    lintOptions {
+        //Configure checks with paths
+        lintConfig file("lint.xml")
+        baseline file("lint-baseline.xml")
+        checkReleaseBuilds true
+
+        showAll true
+        //debug issues in Travis
+        textReport true
+        textOutput 'stdout'
+    }
+}
+
+repositories {
+    google()
+    jcenter()
+    mavenCentral()
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile 'com.google.android.support:wearable:1.1.+'
-    compile 'com.google.android.gms:play-services-wearable:+'
-    compile project(':common')
+    implementation project(':common')
+
+    implementation "com.google.android.support:wearable:${rootProject.ext.googleWearVersion}"
+    compileOnly "com.google.android.wearable:wearable:${rootProject.ext.googleWearVersion}"
+    // Wear requires rewrite to update Play services
+    //noinspection GradleDependency
+    implementation "com.google.android.gms:play-services-wearable:${rootProject.ext.googlePlayServicesVersion}"
+    implementation 'androidx.annotation:annotation:1.1.0'
 }
 
 def props = new Properties()
@@ -43,7 +70,6 @@ if (rootProject.file("release.properties").exists()) {
     android.signingConfigs.release.keyAlias = props.keyAlias
     android.signingConfigs.release.keyPassword = props.keyAliasPassword
 } else {
-    android.signingConfigs.release.storePassword = 'storePassword'
-    android.signingConfigs.release.keyAlias = 'keyAlias'
-    android.signingConfigs.release.keyPassword = 'keyPassword'
+    project.logger.info('INFO: Set the values storeFile, storePassword, keyAlias, and keyPassword in release.properties to sign the release.')
+    android.buildTypes.release.signingConfig = null
 }

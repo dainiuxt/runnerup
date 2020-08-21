@@ -16,15 +16,17 @@
   ~  along with this program.  If not, see <http://www.gnu.org/licenses/>.
   -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/linear1xx_layout"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    android:orientation="vertical" xmlns:app="http://schemas.android.com/apk/res-auto">
+    android:orientation="vertical" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_margin="@dimen/activity_margin">
 
     <org.runnerup.widget.TitleSpinner
         android:id="@+id/hrz_age"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:minWidth="48dp"
+        android:minHeight="48dp"
         android:text="@string/Age"
         app:type="numberpicker"
         app:digits="3"
@@ -37,6 +39,8 @@
         android:id="@+id/hrz_sex"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:minWidth="48dp"
+        android:minHeight="48dp"
         android:entries="@array/sexes"
         android:prompt="@string/Sex"
         android:text="@string/Sex"
@@ -48,6 +52,8 @@
         android:id="@+id/hrz_mhr"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:minWidth="48dp"
+        android:minHeight="48dp"
         android:text="@string/Maximum_heart_rate_MHR"
         app:type="numberpicker"
         app:digits="3"

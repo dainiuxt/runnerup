@@ -18,7 +18,6 @@
 package org.runnerup.hr;
 
 import android.annotation.TargetApi;
-import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
@@ -31,6 +30,9 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Handler;
+import android.os.SystemClock;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 import java.util.HashSet;
 import java.util.List;
@@ -39,11 +41,12 @@ import java.util.UUID;
 /**
  * Connects to a Bluetooth Low Energy module for Android versions >= 4.3
  *
- * For BLE in Android versions 4.2, 4.2.1 and 4.2.2, see {@link SamsungBLEHRProvider}
- *
  * @author jonas
  */
-@TargetApi(18)
+
+//This class must only be used with 4.3 or later, calling checkLibrary()
+@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
+
 public class AndroidBLEHRProvider extends BtHRBase implements HRProvider {
 
     public static boolean checkLibrary(Context ctx) {
@@ -51,28 +54,27 @@ public class AndroidBLEHRProvider extends BtHRBase implements HRProvider {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR2)
             return false;
 
-        if (!ctx.getPackageManager().hasSystemFeature(
-                PackageManager.FEATURE_BLUETOOTH_LE)) {
-            return false;
-        }
-
-        return true;
+        return ctx.getPackageManager().hasSystemFeature(
+                PackageManager.FEATURE_BLUETOOTH_LE);
     }
 
     static final String NAME = "AndroidBLE";
-    static final String DISPLAY_NAME = "Bluetooth SMART (BLE)";
+    private static final String DISPLAY_NAME = "Bluetooth SMART (BLE)";
 
-    static final UUID[] SCAN_UUIDS = {
+    private static final UUID[] SCAN_UUIDS = {
         HRP_SERVICE
     };
-    static boolean AVOID_SCAN_WITH_UUID = false;
-    static boolean CONNECT_IN_OWN_THREAD_FROM_ON_LE_SCAN = false;
+    private final static boolean AVOID_SCAN_WITH_UUID;
+    private final static boolean CONNECT_IN_OWN_THREAD_FROM_ON_LE_SCAN;
 
     static {
         if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.JELLY_BEAN_MR2) {
             // 4.3
             AVOID_SCAN_WITH_UUID = true;
             CONNECT_IN_OWN_THREAD_FROM_ON_LE_SCAN = true;
+        } else {
+            AVOID_SCAN_WITH_UUID = false;
+            CONNECT_IN_OWN_THREAD_FROM_ON_LE_SCAN = false;
         }
     }
 
@@ -82,8 +84,11 @@ public class AndroidBLEHRProvider extends BtHRBase implements HRProvider {
     private BluetoothDevice btDevice = null;
     private int hrValue = 0;
     private long hrTimestamp = 0;
+    private long hrElapsedRealtime = 0;
     private int batteryLevel = -1;
     private boolean hasBatteryService = false;
+
+    private long mPrevHrTimestampNotZero = 0;
 
     private boolean mIsScanning = false;
     private boolean mIsConnected = false;
@@ -108,7 +113,7 @@ public class AndroidBLEHRProvider extends BtHRBase implements HRProvider {
         return Bt20Base.isEnabledImpl();
     }
 
-    public boolean startEnableIntent(Activity activity, int requestCode) {
+    public boolean startEnableIntent(AppCompatActivity activity, int requestCode) {
         return Bt20Base.startEnableIntentImpl(activity, requestCode);
     }
 
@@ -120,12 +125,8 @@ public class AndroidBLEHRProvider extends BtHRBase implements HRProvider {
         if (btAdapter == null) {
             btAdapter = BluetoothAdapter.getDefaultAdapter();
         }
-        if (btAdapter == null) {
-            hrClient.onOpenResult(false);
-            return;
-        }
 
-        hrClient.onOpenResult(true);
+        hrClient.onOpenResult(btAdapter != null);
     }
 
     @Override
@@ -138,10 +139,8 @@ public class AndroidBLEHRProvider extends BtHRBase implements HRProvider {
             btGatt = null;
         }
 
-        if (btAdapter == null) {
-            btAdapter = null;
-        }
-
+        btAdapter = null;
+        btDevice = null;
         hrClient = null;
         hrClientHandler = null;
     }
@@ -168,25 +167,39 @@ public class AndroidBLEHRProvider extends BtHRBase implements HRProvider {
                     return;
                 }
 
+                int val;
                 if (isHeartRateInUINT16(arg0.getValue()[0])) {
-                    hrValue = arg0.getIntValue(
+                    val = arg0.getIntValue(
                             BluetoothGattCharacteristic.FORMAT_UINT16, 1);
                 } else {
-                    hrValue = arg0.getIntValue(
+                    val = arg0.getIntValue(
                             BluetoothGattCharacteristic.FORMAT_UINT8, 1);
                 }
 
-                if (hrValue == 0) {
-                    if (mIsConnecting) {
-                        reportConnectFailed("got hrValue = 0 => reportConnectFailed");
+                hrTimestamp = System.currentTimeMillis();
+                hrElapsedRealtime = SystemClock.elapsedRealtimeNanos();
+
+                if (val == 0) {
+                    // Some HR straps (low quality?) report 0 when it cannot read HR but still have connection
+                    // (especially first value, so it never connects)
+                    // Previously this was considered as an indication that the strap was disconnected
+                    // This keeps this behavior, reporting old value until timeout.
+                    // Discussion in PR #477
+                    final long mMaxHrTimestampNotZero = 60 * 1000;
+                    if (mPrevHrTimestampNotZero > 0 &&
+                            hrTimestamp - mPrevHrTimestampNotZero > mMaxHrTimestampNotZero) {
+                        if (mIsConnecting) {
+                            reportConnectFailed("got hrValue = 0 => reportConnectFailed");
+                            return;
+                        }
+                        log("got hrValue == 0 => disconnecting");
+                        reportDisconnected();
                         return;
                     }
-                    log("got hrValue == 0 => disconnecting");
-                    reportDisconnected();
-                    return;
+                } else {
+                    hrValue = val;
+                    mPrevHrTimestampNotZero = hrTimestamp;
                 }
-
-                hrTimestamp = System.currentTimeMillis();
 
                 if (mIsConnecting) {
                     reportConnected(true);
@@ -215,7 +228,6 @@ public class AndroidBLEHRProvider extends BtHRBase implements HRProvider {
                     log("firmware => startHR()");
                     // triggered from DummyReadForSecLevelCheck
                     startHR();
-                    return;
                 } else if (charUuid.equals(BATTERY_LEVEL_CHARAC)) {
                     log("batterylevel: " + arg0);
                     batteryLevel = arg0.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT8, 0);
@@ -224,7 +236,6 @@ public class AndroidBLEHRProvider extends BtHRBase implements HRProvider {
                     log(" => startHR()");
                     // triggered from DummyReadForSecLevelCheck
                     startHR();
-                    return;
 
                 } else {
                     log("Unknown characteristic received: " + charUuid);
@@ -233,12 +244,6 @@ public class AndroidBLEHRProvider extends BtHRBase implements HRProvider {
                 log("onCharacteristicRead => " + e);
                 reportConnectFailed("Exception in onCharacteristicRead: " + e);
             }
-        }
-
-        @Override
-        public void onCharacteristicWrite(BluetoothGatt gatt,
-                                          BluetoothGattCharacteristic characteristic, int status) {
-            super.onCharacteristicWrite(gatt, characteristic, status);
         }
 
         @Override
@@ -262,13 +267,12 @@ public class AndroidBLEHRProvider extends BtHRBase implements HRProvider {
                     if (newState == BluetoothProfile.STATE_CONNECTED) {
                         boolean res = btGatt.discoverServices();
                         log("discoverServices() => " + res);
-                        return;
                     } else {
                         boolean res = btGatt.connect();
-                        log("disconnect while connecting => btGatt.connect() => "
+                        log("reconnect while connecting => btGatt.connect() => "
                                         + res);
-                        return;
                     }
+                    return;
                 }
 
                 if (mIsDisconnecting) {
@@ -285,7 +289,7 @@ public class AndroidBLEHRProvider extends BtHRBase implements HRProvider {
                     reportDisconnected();
                     return;
                 }
-                log("onConnectionStateChange => WHAT TO DO??");
+                log("onConnectionStateChange => Already connected?");
             } catch (Exception e) {
                 log("onConnectionStateChange => " + e);
                 reportConnectFailed("Exception in onConnectionStateChange: " + e);
@@ -300,22 +304,6 @@ public class AndroidBLEHRProvider extends BtHRBase implements HRProvider {
             if (!enableNotification(true, mHRMcharac)) {
                 reportConnectFailed("Failed to enable notification in onDescriptorRead");
             }
-        }
-
-        @Override
-        public void onDescriptorWrite(BluetoothGatt gatt,
-                                      BluetoothGattDescriptor descriptor, int status) {
-            super.onDescriptorWrite(gatt, descriptor, status);
-        }
-
-        @Override
-        public void onReadRemoteRssi(BluetoothGatt gatt, int rssi, int status) {
-            super.onReadRemoteRssi(gatt, rssi, status);
-        }
-
-        @Override
-        public void onReliableWriteCompleted(BluetoothGatt gatt, int status) {
-            super.onReliableWriteCompleted(gatt, status);
         }
 
         @Override
@@ -343,14 +331,9 @@ public class AndroidBLEHRProvider extends BtHRBase implements HRProvider {
             }
 
             log(" => DummyRead");
-            if (status == BluetoothGatt.GATT_SUCCESS) {
-                DummyReadForSecLevelCheck(gatt);
-                // continue in onCharacteristicRead
-            } else {
-                DummyReadForSecLevelCheck(gatt);
-                // reportConnectFailed("onServicesDiscovered(" + gatt + ", " +
-                // status + ")");
-            }
+            DummyReadForSecLevelCheck(gatt);
+            // if GATT_SUCCESS, continue in onCharacteristicRead
+            // no report on error
         }
 
         /*
@@ -376,16 +359,14 @@ public class AndroidBLEHRProvider extends BtHRBase implements HRProvider {
                 return;
             }
 
-            if (btGatt.readCharacteristic(firmwareIdCharc) == false) {
+            if (!btGatt.readCharacteristic(firmwareIdCharc)) {
                 reportConnectFailed("firmware revison reading is failed!");
             }
             // continue in onCharacteristicRead
         }
 
         private boolean isHeartRateInUINT16(byte b) {
-            if ((b & 1) != 0)
-                return true;
-            return false;
+            return (b & 1) != 0;
         }
 
         private void startHR() {
@@ -406,9 +387,8 @@ public class AndroidBLEHRProvider extends BtHRBase implements HRProvider {
                 reportConnectFailed("CCC for HEART RATE MEASUREMENT charateristic not found!");
                 return;
             }
-            if (btGatt.readDescriptor(mHRMccc) == false) {
+            if (!btGatt.readDescriptor(mHRMccc)) {
                 reportConnectFailed("readDescriptor() is failed");
-                return;
             }
             // Continue in onDescriptorRead
         }
@@ -436,8 +416,9 @@ public class AndroidBLEHRProvider extends BtHRBase implements HRProvider {
         }
     };
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     private boolean enableNotification(boolean onoff,
-            BluetoothGattCharacteristic charac) {
+                                       BluetoothGattCharacteristic charac) {
         if (btGatt == null)
             return false;
 
@@ -467,6 +448,7 @@ public class AndroidBLEHRProvider extends BtHRBase implements HRProvider {
         return mIsScanning;
     }
 
+    // Using a derecated API - change in API 21 (Marshmallow)
     private final BluetoothAdapter.LeScanCallback mLeScanCallback = new BluetoothAdapter.LeScanCallback() {
         @Override
         public void onLeScan(final BluetoothDevice device, int rssi,
@@ -483,17 +465,15 @@ public class AndroidBLEHRProvider extends BtHRBase implements HRProvider {
                 stopScan();
 
                 if (CONNECT_IN_OWN_THREAD_FROM_ON_LE_SCAN) {
+                    // Android 4.3
                     log("CONNECT_IN_OWN_THREAD_FROM_ON_LE_SCAN");
-                    hrClientHandler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            log("before connect");
-                            btGatt = btDevice.connectGatt(context, false, btGattCallbacks);
-                            if (btGatt == null) {
-                                reportConnectFailed("connectGatt returned null");
-                            } else {
-                                log("connectGatt: " + btGatt);
-                            }
+                    hrClientHandler.post(() -> {
+                        log("before connect");
+                        btGatt = btDevice.connectGatt(context, false, btGattCallbacks);
+                        if (btGatt == null) {
+                            reportConnectFailed("connectGatt returned null");
+                        } else {
+                            log("connectGatt: " + btGatt);
                         }
                     });
                 } else {
@@ -512,19 +492,16 @@ public class AndroidBLEHRProvider extends BtHRBase implements HRProvider {
 
             mScanDevices.add(address);
 
-            hrClientHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    if (mIsScanning) { // NOTE: mIsScanning in user-thread
-                        hrClient.onScanResult(Bt20Base.createDeviceRef(NAME, device));
-                    }
+            hrClientHandler.post(() -> {
+                if (mIsScanning) { // NOTE: mIsScanning in user-thread
+                    hrClient.onScanResult(Bt20Base.createDeviceRef(NAME, device));
                 }
             });
         }
 
     };
 
-    final HashSet<String> mScanDevices = new HashSet<String>();
+    private final HashSet<String> mScanDevices = new HashSet<>();
 
     @Override
     public void startScan() {
@@ -534,6 +511,7 @@ public class AndroidBLEHRProvider extends BtHRBase implements HRProvider {
         mIsScanning = true;
         mScanDevices.clear();
         if (AVOID_SCAN_WITH_UUID)
+            // Android 4.3
             btAdapter.startLeScan(mLeScanCallback);
         else
             btAdapter.startLeScan(SCAN_UUIDS, mLeScanCallback);
@@ -566,20 +544,16 @@ public class AndroidBLEHRProvider extends BtHRBase implements HRProvider {
             return;
         }
 
-        BluetoothDevice dev = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(
-                ref.deviceAddress);
+        BluetoothDevice dev = btAdapter.getRemoteDevice(ref.deviceAddress);
 
-        if (mIsConnected)
-            return;
-
-        if (mIsConnecting)
+        if (mIsConnected || mIsConnecting)
             return;
 
         mIsConnecting = true;
         btDevice = dev;
         if (ref.deviceName == null || dev.getName() == null
                 || !dev.getName().contentEquals(ref.deviceName)) {
-            /**
+            /*
              * If device doesn't match name, scan for before connecting
              */
             log("Scan before connect");
@@ -599,14 +573,11 @@ public class AndroidBLEHRProvider extends BtHRBase implements HRProvider {
 
     private void reportConnected(final boolean b) {
         if (hrClientHandler != null) {
-            hrClientHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    if (mIsConnecting && hrClient != null) {
-                        mIsConnected = b;
-                        mIsConnecting = false;
-                        hrClient.onConnectResult(b);
-                    }
+            hrClientHandler.post(() -> {
+                if (mIsConnecting && hrClient != null) {
+                    mIsConnected = b;
+                    mIsConnecting = false;
+                    hrClient.onConnectResult(b);
                 }
             });
         }
@@ -625,20 +596,17 @@ public class AndroidBLEHRProvider extends BtHRBase implements HRProvider {
 
     @Override
     public void disconnect() {
-        if (btGatt == null)
-            return;
-
-        if (btDevice == null) {
+        if (btGatt == null || btDevice == null) {
             return;
         }
 
+        if (!mIsConnecting && !mIsConnected)
+            return;
+
+        if (mIsDisconnecting)
+            return;
+
         boolean isConnected = mIsConnected;
-        if (mIsConnecting == false && mIsConnected == false)
-            return;
-
-        if (mIsDisconnecting == true)
-            return;
-
         mIsConnected = false;
         mIsConnecting = false;
         mIsDisconnecting = true;
@@ -719,6 +687,11 @@ public class AndroidBLEHRProvider extends BtHRBase implements HRProvider {
     }
 
     @Override
+    public long getHRValueElapsedRealtime() {
+        return this.hrElapsedRealtime;
+    }
+
+    @Override
     public HRData getHRData() {
 
         if (hrValue <= 0) {
@@ -738,10 +711,12 @@ public class AndroidBLEHRProvider extends BtHRBase implements HRProvider {
         return this.batteryLevel;
     }
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     private boolean checkBtGatt(BluetoothGatt gatt) {
         return checkBtGatt(gatt, false);
     }
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     private boolean checkBtGattOnlyLogError(BluetoothGatt gatt) {
         return checkBtGatt(gatt, true);
     }

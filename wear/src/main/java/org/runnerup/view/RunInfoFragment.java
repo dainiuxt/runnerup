@@ -16,10 +16,8 @@
  */
 package org.runnerup.view;
 
-import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.Fragment;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Pair;
@@ -39,15 +37,17 @@ import org.runnerup.service.StateService;
 import java.util.ArrayList;
 import java.util.List;
 
-@TargetApi(Build.VERSION_CODES.KITKAT_WATCH)
+
 public class RunInfoFragment extends Fragment implements ValueModel.ChangeListener<TrackerState> {
 
-    List<Pair<String, TextView>> textViews = new ArrayList<Pair<String, TextView>>(3);
-    long dataUpdateTime;
-    long headersTimestamp;
-    Handler handler = new Handler();
-    boolean handlerOutstanding = false;
-    Runnable periodicTick = new Runnable() {
+    private final List<Pair<String, TextView>> textViews = new ArrayList<>(3);
+    private int screen;
+    private int rowsOnScreen;
+    private long dataUpdateTime;
+    private long headersTimestamp;
+    private final Handler handler = new Handler();
+    private boolean handlerOutstanding = false;
+    private final Runnable periodicTick = new Runnable() {
         @Override
         public void run() {
             update();
@@ -59,35 +59,64 @@ public class RunInfoFragment extends Fragment implements ValueModel.ChangeListen
     };
     private MainActivity mainActivity;
 
+    private static final int[] card1ids = new int[]{
+            R.id.textView11,
+            R.id.textViewHeader11,
+    };
+    private static final int[] card2ids = new int[]{
+            R.id.textView21, R.id.textView22,
+            R.id.textViewHeader21, R.id.textViewHeader22
+    };
+    private static final int[] card3ids = new int[]{
+            R.id.textView31, R.id.textView32, R.id.textView33,
+            R.id.textViewHeader31, R.id.textViewHeader32, R.id.textViewHeader33
+    };
+
+    static public RunInfoFragment createForScreen(int screen, int rowsOnScreen) {
+        RunInfoFragment frag = new RunInfoFragment();
+        frag.screen = screen;
+        frag.rowsOnScreen = rowsOnScreen;
+        return frag;
+    }
+
     public RunInfoFragment() {
         super();
     }
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-    }
-
-    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.card3, container, false);
-        textViews.add(new Pair<String, TextView>(Constants.Wear.RunInfo.DATA + "0",
-                (TextView) view.findViewById(R.id.textView1)));
-        textViews.add(new Pair<String, TextView>(Constants.Wear.RunInfo.DATA + "1",
-                (TextView) view.findViewById(R.id.textView2)));
-        textViews.add(new Pair<String, TextView>(Constants.Wear.RunInfo.DATA + "2",
-                (TextView) view.findViewById(R.id.textView3)));
 
-        textViews.add(new Pair<String, TextView>(Constants.Wear.RunInfo.HEADER + "0",
-                (TextView) view.findViewById(R.id.textViewHeader1)));
-        textViews.add(new Pair<String, TextView>(Constants.Wear.RunInfo.HEADER + "1",
-                (TextView) view.findViewById(R.id.textViewHeader2)));
-        textViews.add(new Pair<String, TextView>(Constants.Wear.RunInfo.HEADER + "2",
-                (TextView) view.findViewById(R.id.textViewHeader3)));
+        int[] ids = null;
+        int card = 0;
+        switch (rowsOnScreen) {
+            case 3:
+                ids = card3ids;
+                card = R.layout.card3;
+                break;
+            case 2:
+                ids = card2ids;
+                card = R.layout.card2;
+                break;
+            case 1:
+                ids = card1ids;
+                card = R.layout.card1;
+                break;
+        }
+        View view = inflater.inflate(card, container, false);
+        for (int i = 0; i < rowsOnScreen; i++) {
+            textViews.add(new Pair<>(Constants.Wear.RunInfo.DATA +
+                    screen + "." + i,
+                    (TextView) view.findViewById(ids[i])));
+        }
+        for (int i = 0; i < rowsOnScreen; i++) {
+            textViews.add(new Pair<>(Constants.Wear.RunInfo.HEADER +
+                    screen + "." + i,
+                    (TextView) view.findViewById(ids[rowsOnScreen + i])));
+        }
         return view;
     }
 
-    void startTimer() {
+    private void startTimer() {
         if (handlerOutstanding)
             return;
         handlerOutstanding = true;

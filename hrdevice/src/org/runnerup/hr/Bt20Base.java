@@ -17,8 +17,8 @@
 
 package org.runnerup.hr;
 
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
-import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
@@ -26,6 +26,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Handler;
+import android.os.SystemClock;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -48,44 +51,46 @@ public abstract class Bt20Base extends BtHRBase {
     }
 
     public static boolean isEnabledImpl() {
+        //noinspection SimplifiableIfStatement
         if (BluetoothAdapter.getDefaultAdapter() != null)
             return BluetoothAdapter.getDefaultAdapter().isEnabled();
         return false;
     }
 
-    public boolean startEnableIntent(Activity activity, int requestCode) {
+    public boolean startEnableIntent(AppCompatActivity activity, int requestCode) {
         return startEnableIntentImpl(activity, requestCode);
     }
 
-    public static boolean startEnableIntentImpl(Activity activity, int requestCode) {
+    @SuppressWarnings("SameReturnValue")
+    public static boolean startEnableIntentImpl(AppCompatActivity activity, int requestCode) {
         activity.startActivityForResult(new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE),
                 requestCode);
         return true;
     }
 
-    public static boolean checkLibrary(Context ctx) {
+    @SuppressLint("ObsoleteSdkInt")
+    public static boolean checkLibrary(@SuppressWarnings("UnusedParameters") Context ctx) {
 
         // Don't bother if createInsecureRfcommSocketToServiceRecord isn't
         // available
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.GINGERBREAD_MR1)
-            return false;
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.GINGERBREAD_MR1;
 
-        return true;
     }
 
     // UUID
-    public static final UUID MY_UUID = UUID
+    private static final UUID MY_UUID = UUID
             .fromString("00001101-0000-1000-8000-00805F9B34FB");
     private ConnectThread connectThread;
     private ConnectedThread connectedThread;
 
     private int hrValue = 0;
     private long hrTimestamp = 0;
+    private long hrElapsedRealtime = 0;
     private BluetoothAdapter btAdapter = null;
 
     // private Context context = null;
 
-    public Bt20Base(Context ctx) {
+    Bt20Base(@SuppressWarnings("UnusedParameters") Context ctx) {
         // context = ctx;
     }
 
@@ -117,7 +122,9 @@ public abstract class Bt20Base extends BtHRBase {
 
     public void disconnect() {
         reset();
-        hrClient.onDisconnectResult(true);
+        if (hrClient != null) {
+            hrClient.onDisconnectResult(true);
+        }
     }
 
     private void reset() {
@@ -150,6 +157,11 @@ public abstract class Bt20Base extends BtHRBase {
     @Override
     public long getHRValueTimestamp() {
         return hrTimestamp;
+    }
+
+    @Override
+    public long getHRValueElapsedRealtime() {
+        return this.hrElapsedRealtime;
     }
 
     @Override
@@ -192,13 +204,9 @@ public abstract class Bt20Base extends BtHRBase {
 
         mIsScanning = true;
 
-        hrClientHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                Set<BluetoothDevice> list = new HashSet<BluetoothDevice>();
-                list.addAll(btAdapter.getBondedDevices());
-                publishDevice(list);
-            }
+        hrClientHandler.post(() -> {
+            Set<BluetoothDevice> list = new HashSet<>(btAdapter.getBondedDevices());
+            publishDevice(list);
         });
     }
 
@@ -212,13 +220,7 @@ public abstract class Bt20Base extends BtHRBase {
             BluetoothDevice dev = list.iterator().next();
             list.remove(dev);
             hrClient.onScanResult(createDeviceRef(getProviderName(), dev));
-            hrClientHandler.post(new Runnable() {
-
-                @Override
-                public void run() {
-                    publishDevice(list);
-                }
-            });
+            hrClientHandler.post(() -> publishDevice(list));
         }
     }
 
@@ -248,19 +250,15 @@ public abstract class Bt20Base extends BtHRBase {
         cancelThreads();
 
         if (hrClient != null) {
-            hrClientHandler.post(new Runnable() {
-
-                @Override
-                public void run() {
-                    if (mIsConnecting && hrClient != null) {
-                        // Start connected thread...
-                        connectedThread = new ConnectedThread(bluetoothDevice, btDeviceName,
-                                bluetoothSocket);
-                        connectedThread.start();
-                    } else {
-                        log("closeSocket");
-                        closeSocket(bluetoothSocket);
-                    }
+            hrClientHandler.post(() -> {
+                if (mIsConnecting && hrClient != null) {
+                    // Start connected thread...
+                    connectedThread = new ConnectedThread(bluetoothDevice, btDeviceName,
+                            bluetoothSocket);
+                    connectedThread.start();
+                } else {
+                    log("closeSocket");
+                    closeSocket(bluetoothSocket);
                 }
             });
         } else {
@@ -269,7 +267,7 @@ public abstract class Bt20Base extends BtHRBase {
         }
     }
 
-    protected static void closeSocket(BluetoothSocket bluetoothSocket) {
+    private static void closeSocket(BluetoothSocket bluetoothSocket) {
         if (bluetoothSocket != null) {
             try {
                 bluetoothSocket.close();
@@ -280,7 +278,7 @@ public abstract class Bt20Base extends BtHRBase {
 
     }
 
-    protected static void closeStream(InputStream stream) {
+    private static void closeStream(InputStream stream) {
         if (stream != null) {
             try {
                 stream.close();
@@ -294,28 +292,24 @@ public abstract class Bt20Base extends BtHRBase {
         log("reportConnected(" + result + ") mIsConnecting: " + mIsConnecting
                 + ", mIsConnected: " + mIsConnected + ", hrClient: " + hrClient);
         if (hrClient != null) {
-            hrClientHandler.post(new Runnable() {
+            hrClientHandler.post(() -> {
+                boolean reset = !result;
+                if (mIsConnecting && hrClient != null) {
+                    mIsConnected = result;
+                    mIsConnecting = false;
+                    hrClient.onConnectResult(result);
+                } else {
+                    reset = true;
+                }
 
-                @Override
-                public void run() {
-                    boolean reset = !result;
-                    if (mIsConnecting && hrClient != null) {
-                        mIsConnected = result;
-                        mIsConnecting = false;
-                        hrClient.onConnectResult(result);
-                    } else {
-                        reset = true;
-                    }
-
-                    if (reset) {
-                        Bt20Base.this.reset();
-                    }
+                if (reset) {
+                    Bt20Base.this.reset();
                 }
             });
         }
     }
 
-    static BluetoothSocket tryConnect(BtHRBase base, final BluetoothDevice device, int i)
+    private static BluetoothSocket tryConnect(BtHRBase base, final BluetoothDevice device, int i)
             throws IOException {
         BluetoothSocket sock = null;
         base.log("tryConnect(method: " + i + ")");
@@ -330,19 +324,14 @@ public abstract class Bt20Base extends BtHRBase {
             case 2: {
                 Method m;
                 try {
+                    //noinspection RedundantArrayCreation,JavaReflectionMemberAccess
                     m = device.getClass().getMethod("createInsecureRfcommSocket",
-                            new Class[] {
-                                int.class
+                            new Class[]{
+                                    int.class
                             });
                     m.setAccessible(true);
                     sock = (BluetoothSocket) m.invoke(device, 1);
-                } catch (NoSuchMethodException e) {
-                    e.printStackTrace();
-                } catch (IllegalArgumentException e) {
-                    e.printStackTrace();
-                } catch (IllegalAccessException e) {
-                    e.printStackTrace();
-                } catch (InvocationTargetException e) {
+                } catch (NoSuchMethodException | IllegalArgumentException | InvocationTargetException | IllegalAccessException e) {
                     e.printStackTrace();
                 }
             }
@@ -439,16 +428,16 @@ public abstract class Bt20Base extends BtHRBase {
      * This thread handles data transmission when connected.
      */
     private class ConnectedThread extends Thread {
-        private final BluetoothDevice bluetoothDevice;
+        //private final BluetoothDevice bluetoothDevice;
         private final BluetoothSocket bluetoothSocket;
         private final InputStream inputStream;
-        private final String deviceName;
+        //private final String deviceName;
 
         public ConnectedThread(final BluetoothDevice device, final String deviceName,
                 final BluetoothSocket bluetoothSocket) {
-            this.bluetoothDevice = device;
+            //this.bluetoothDevice = device;
             this.bluetoothSocket = bluetoothSocket;
-            this.deviceName = deviceName;
+            //this.deviceName = deviceName;
 
             InputStream tmp = null;
 
@@ -467,7 +456,7 @@ public abstract class Bt20Base extends BtHRBase {
         }
 
         private void readHR() {
-            Integer hr[] = new Integer[1];
+            Integer[] hr = new Integer[1];
             final int frameSize = getFrameSize();
             byte[] buffer = new byte[2 * frameSize];
             int bytesInBuffer = 0;
@@ -488,6 +477,12 @@ public abstract class Bt20Base extends BtHRBase {
                     if (hr[0] != null) {
                         hrValue = hr[0];
                         hrTimestamp = System.currentTimeMillis();
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+                            hrElapsedRealtime = SystemClock.elapsedRealtimeNanos();
+                        } else {
+                            final int NANO_IN_MILLI = 1000000;
+                            hrElapsedRealtime = SystemClock.elapsedRealtime() * NANO_IN_MILLI;
+                        }
 
                         if (hrValue > 0 && mIsConnecting) {
                             log("hrValue: " + hrValue + " => reportConnected");
@@ -538,20 +533,16 @@ public abstract class Bt20Base extends BtHRBase {
         }
     }
 
-    public void reportDisconnected(final boolean ok) {
+    private void reportDisconnected(@SuppressWarnings("SameParameterValue") final boolean ok) {
         log("reportDisconnect(" + ok + ")");
         if (hrClientHandler != null) {
-            hrClientHandler.post(new Runnable() {
-
-                @Override
-                public void run() {
-                    if (hrClient == null) {
-                        log("reportDisconnect() hrClient == null");
-                        return;
-                    }
-
-                    hrClient.onDisconnectResult(ok);
+            hrClientHandler.post(() -> {
+                if (hrClient == null) {
+                    log("reportDisconnect() hrClient == null");
+                    return;
                 }
+
+                hrClient.onDisconnectResult(ok);
             });
         } else {
             log("reportDisconnect() hrClientHandler == null");
@@ -586,12 +577,12 @@ public abstract class Bt20Base extends BtHRBase {
 
         public abstract int parseBuffer(byte[] buffer);
 
-        public abstract int findNextAlignment(byte buffer[]);
+        public abstract int findNextAlignment(byte[] buffer);
     }
 
-    public abstract int getFrameSize();
+    protected abstract int getFrameSize();
 
-    public abstract int parseBuffer(byte[] buffer, int bytesInBuffer, Integer[] hr);
+    protected abstract int parseBuffer(byte[] buffer, int bytesInBuffer, Integer[] hr);
 
     public static class ZephyrHRM extends Bt20BaseOld {
 
@@ -657,7 +648,7 @@ public abstract class Bt20Base extends BtHRBase {
             return -1;
         }
 
-        private static int calcCrc8(byte buffer[], int start, int length) {
+        private static int calcCrc8(byte[] buffer, @SuppressWarnings("SameParameterValue") int start, @SuppressWarnings("SameParameterValue") int length) {
             int crc = 0x0;
 
             for (int i = start; i < (start + length); i++) {
@@ -698,10 +689,11 @@ public abstract class Bt20Base extends BtHRBase {
             return 16;
         }
 
-        private boolean startOfMessage(byte buffer[], int bytesInBuffer, int pos) {
+        private boolean startOfMessage(byte[] buffer, int bytesInBuffer, int pos) {
             if (bytesInBuffer < pos + 4)
                 return false;
 
+            //noinspection PointlessArithmeticExpression
             int b0 = getByte(buffer[pos + 0]);
             int b1 = getByte(buffer[pos + 1]); // len
             int b2 = getByte(buffer[pos + 2]);
@@ -718,6 +710,7 @@ public abstract class Bt20Base extends BtHRBase {
                 return false;
             }
 
+            //noinspection RedundantIfStatement
             if (bytesInBuffer < pos + b1)
                 return false;
 
@@ -725,7 +718,7 @@ public abstract class Bt20Base extends BtHRBase {
         }
 
         @Override
-        public int parseBuffer(byte[] buffer, int bytesInBuffer, Integer hrVal[]) {
+        public int parseBuffer(byte[] buffer, int bytesInBuffer, Integer[] hrVal) {
             hrVal[0] = null;
             for (int i = 0; i < bytesInBuffer; i++) {
                 if (startOfMessage(buffer, bytesInBuffer, i)) {
@@ -763,10 +756,11 @@ public abstract class Bt20Base extends BtHRBase {
             return FRAME_SIZE;
         }
 
-        private boolean startOfMessage(byte buffer[], int bytesInBuffer, int pos) {
+        private boolean startOfMessage(byte[] buffer, int bytesInBuffer, int pos) {
             if (bytesInBuffer < pos + FRAME_SIZE)
                 return false;
 
+            //noinspection PointlessArithmeticExpression
             int b0 = getByte(buffer[pos + 0]);
             int b1 = getByte(buffer[pos + 1]);
             int b2 = getByte(buffer[pos + 2]);
@@ -779,6 +773,7 @@ public abstract class Bt20Base extends BtHRBase {
             }
 
             int len = b1 >> 2;
+            //noinspection RedundantIfStatement
             if (bytesInBuffer < pos + len) {
                 return false;
             }
@@ -787,7 +782,7 @@ public abstract class Bt20Base extends BtHRBase {
         }
 
         @Override
-        public int parseBuffer(byte[] buffer, int bytesInBuffer, Integer hrVal[]) {
+        public int parseBuffer(byte[] buffer, int bytesInBuffer, Integer[] hrVal) {
             hrVal[0] = null;
             for (int i = 0; i < bytesInBuffer; i++) {
                 if (startOfMessage(buffer, bytesInBuffer, i)) {
@@ -800,7 +795,7 @@ public abstract class Bt20Base extends BtHRBase {
         }
     }
 
-    static public int getByte(byte b) {
+    private static int getByte(byte b) {
         return b & 0xFF;
     }
 

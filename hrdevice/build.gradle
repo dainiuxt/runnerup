@@ -1,13 +1,22 @@
 apply plugin: 'com.android.library'
-apply plugin: 'com.github.dcendents.android-maven'
 
 group = "org.runnerup.hr"
 version = "1.0"
 
 android {
-    compileSdkVersion 22
-    buildToolsVersion '22.0.1'
-    
+    compileSdkVersion rootProject.ext.compileSdkVersion
+    buildToolsVersion rootProject.ext.buildToolsVersion
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    dexOptions {
+        // Skip pre-dexing when running on Travis CI or when disabled via -Dpre-dex=false.
+        preDexLibraries = preDexEnabled && !travisBuild
+    }
+
     sourceSets {
         main {
             manifest.srcFile 'AndroidManifest.xml'
@@ -20,34 +29,28 @@ android {
         }
     }
     defaultConfig {
-        minSdkVersion 8
-        targetSdkVersion 22
+        minSdkVersion 15
+        targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName = version
-    }
 
+        if (rootProject.ext.antPlusLib) {
+            buildConfigField 'Boolean', 'ANTPLUS_ENABLED', "true"
+        } else {
+            android.sourceSets.main.java.excludes = ['org/runnerup/hr/AntPlus.java']
+            buildConfigField 'Boolean', 'ANTPLUS_ENABLED', "false"
+        }
+    }
+}
+
+repositories {
+    google()
+    jcenter()
 }
 
 dependencies {
-    provided files('libs/samsung_ble_sdk_200.jar')
-    compile files('../ANT-Android-SDKs/ANT+_Android_SDK/API/antpluginlib_3-1-0.jar')
-}
-
-task downloadSamsungBleSdk(type: DownloadTask) {
-    sourceUrl = 'https://github.com/fishkingsin/BLEDialogTool/raw/master/lib/samsung_ble_sdk_200.jar'
-    target = file('libs/samsung_ble_sdk_200.jar')
-}
-preBuild.dependsOn downloadSamsungBleSdk
-
-class DownloadTask extends DefaultTask {
-    @Input
-    String sourceUrl
-
-    @OutputFile
-    File target
-
-    @TaskAction
-    void download() {
-        ant.get(src: sourceUrl, dest: target)
+    implementation "androidx.appcompat:appcompat:${rootProject.ext.appcompat_version}"
+    if (rootProject.ext.antPlusLib) {
+        implementation files("../" + antPlusLib)
     }
 }

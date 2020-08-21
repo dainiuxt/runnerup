@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
+<?xml version="1.0" encoding="utf-8"?><!--
   ~ Copyright (C) 2013 jonas.oreland@gmail.com
   ~
   ~  This program is free software: you can redistribute it and/or modify
@@ -19,13 +18,17 @@
     xmlns:runnerup="http://schemas.android.com/apk/res-auto"
     android:id="@+id/tab_interval"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:clipToPadding="false"
+    android:paddingBottom="@dimen/margin_for_fab"
+    android:paddingLeft="@dimen/activity_margin"
+    android:paddingRight="@dimen/activity_margin"
+    android:paddingTop="@dimen/activity_margin"> <!--todo test if it scrolls on smaller screens-->
 
     <LinearLayout
-        android:id="@+id/tab_interval0"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical" >
+        android:orientation="vertical">
 
         <org.runnerup.widget.TitleSpinner
             android:id="@+id/interval_audio_cue_spinner"
@@ -36,10 +39,21 @@
             runnerup:type="spinner_txt" />
 
         <org.runnerup.widget.TitleSpinner
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:defaultValue="8"
+            android:inputType="number"
+            android:key="@string/pref_interval_repetitions"
+            android:prompt="@string/Type"
+            android:text="@string/Repetitions"
+            runnerup:type="numberpicker" />
+
+        <org.runnerup.widget.TitleSpinner
             android:id="@+id/interval_type"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:entries="@array/types"
+            android:defaultValue="1"
             android:key="@string/pref_interval_type"
             android:prompt="@string/Type"
             android:text="@string/Interval_type" />
@@ -52,7 +66,7 @@
             android:inputType="time"
             android:key="@string/pref_interval_time"
             android:prompt="@string/Type"
-            android:text="@string/Interval_time_HHMMSS"
+            android:text=""
             runnerup:type="durationpicker" />
 
         <org.runnerup.widget.TitleSpinner
@@ -63,7 +77,7 @@
             android:inputType="numberDecimal"
             android:key="@string/pref_interval_distance"
             android:prompt="@string/Type"
-            android:text="@string/Interval_distance"
+            android:text=""
             runnerup:type="distancepicker" />
 
         <org.runnerup.widget.TitleSpinner
@@ -83,7 +97,7 @@
             android:inputType="time"
             android:key="@string/pref_interval_rest_time"
             android:prompt="@string/Type"
-            android:text="@string/Rest_time_HHMMSS"
+            android:text=""
             runnerup:type="durationpicker" />
 
         <org.runnerup.widget.TitleSpinner
@@ -94,39 +108,30 @@
             android:inputType="numberDecimal"
             android:key="@string/pref_interval_rest_distance"
             android:prompt="@string/Type"
-            android:text="@string/Rest_distance_m"
+            android:text=""
             runnerup:type="distancepicker" />
-
-        <org.runnerup.widget.TitleSpinner
-            android:id="@+id/interval_repetitions"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:defaultValue="5"
-            android:inputType="number"
-            android:key="@string/pref_interval_repetitions"
-            android:prompt="@string/Type"
-            android:text="@string/Repetitions"
-            runnerup:type="numberpicker" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:orientation="horizontal" >
+            android:orientation="horizontal">
 
             <CheckBox
-                android:id="@+id/interval_warmup"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:minWidth="48dp"
+                android:minHeight="48dp"
                 android:checked="true"
                 android:enabled="false"
                 android:text="@string/warm_up" />
 
             <CheckBox
-                android:id="@+id/interval_cooldown"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:minWidth="48dp"
+                android:minHeight="48dp"
                 android:checked="true"
                 android:enabled="false"
                 android:text="@string/cool_down" />

@@ -1,12 +1,8 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<resources xmlns:tools="http://schemas.android.com/tools">
+<resources>
   <string-array name="unitEntries">
     <item>Мили</item>
     <item>Километры</item>
-  </string-array>
-  <string-array name="unitValues">
-    <item>Миль</item>
-    <item>Км</item>
   </string-array>
   <!--Note: keep in same order as DB.INTENSITY-->
   <string-array name="step_intensity_types">
@@ -16,27 +12,23 @@
     <item>Восстановление</item>
     <item>Заминка</item>
   </string-array>
-  <!--same order as above, same values as Intensity-->
   <string-array name="duration_types">
-    <item>Until pressed</item>
+    <item>До нажатия</item>
     <item>Время</item>
     <item>Дистанция</item>
   </string-array>
-  <!--same order as above, same values as Dimension-->
   <string-array name="target_types">
     <item>Нет</item>
     <item>Темп</item>
-    <item>Пульс</item>
+    <item>Зона ЧСС</item>
   </string-array>
-  <!--Note: same order as above, same values as Dimension-->
   <!--Note: keep in same order as DB.ACCOUNT.SPORT_-->
-  <string-array name="muteEntries">
-    <item>Нет</item>
-    <item>Да</item>
-  </string-array>
-  <string-array name="muteValues">
-    <item>Нет</item>
-    <item>Да</item>
+  <string-array name="sportEntries">
+    <item>Бег</item>
+    <item>Велосипед</item>
+    <item>Прочее</item>
+    <item>Ориентирование</item>
+    <item>Ходьба</item>
   </string-array>
   <string-array name="types">
     <item>Время</item>
@@ -46,6 +38,5 @@
     <item>Мужской</item>
     <item>Женский</item>
   </string-array>
-  <!--Audio cue languages-->
-  <!--Note: keep in same order as languagesNames-->
+  <!--Note: keep in same order as DB-->
 </resources>

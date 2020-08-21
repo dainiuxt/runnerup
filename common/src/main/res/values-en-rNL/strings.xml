@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
   <!--~ Copyright (C) 2014 jonas.oreland@gmail.com
   ~
   ~  This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,6 @@
   ~
   ~  You should have received a copy of the GNU General Public License
   ~  along with this program.  If not, see <http://www.gnu.org/licenses/>.-->
-  <string name="app_name">RunnerUp</string>
   <!--metrics stuff-->
   <string name="metrics_distance_km">km</string>
   <string name="metrics_distance_mi">mi</string>
@@ -24,19 +23,9 @@
   <string name="metrics_elapsed_min">min</string>
   <string name="metrics_elapsed_s">s</string>
   <string name="metrics_heartrate">Hr</string>
-  <!--format hint stuff-->
   <string name="Maximum_heart_rate_MHR">Maximale hartslag (HFmax)</string>
-  <string name="Target_pace_HHMMSS">Doel tempo (HH:MM:SS)</string>
-  <string name="Interval_time_HHMMSS">Interval tijd (HH:MM:SS)</string>
-  <string name="Interval_distance_m">Interval afstand (m)</string>
-  <string name="Rest_time_HHMMSS">Rust tijd (HH:MM:SS)</string>
-  <string name="Rest_distance_m">Rust afstand (m)</string>
-  <string name="Duration_time_HHMMSS">Duur tijd (HH:MM:SS)</string>
-  <string name="Duration_distance_m">Duur afstand (m)</string>
-  <!--weird stuff: should it be placeholders or even removed?-->
-  <string name="ok_rats">ok, rats</string>
-  <!--other-->
-  <string name="Google_Play_Services_Legal_Notices">Google Play Services Wettelijke Bepalingen</string>
+  <string name="Target_pace_HHMMSS">Doel tempo</string>
+  <!--first argument is a date, second a time, for instance: "Yesterday at 13:32"-->
   <string name="Type">Type</string>
   <string name="active">actief</string>
   <string name="rest">rust</string>
@@ -46,7 +35,6 @@
   <string name="repeat">herhalen</string>
   <string name="time">tijd</string>
   <string name="distance">afstand</string>
-  <string name="Unknown">Onbekend</string>
   <string name="Distance">Afstand</string>
   <string name="speed">snelheid</string>
   <string name="pace">tempo</string>
@@ -65,7 +53,6 @@
   <string name="Interval">Interval</string>
   <string name="Lap">Ronde</string>
   <string name="New_lap">Nieuwe ronde</string>
-  <string name="Next_lap">Volgende ronde</string>
   <string name="Pause">Pauze</string>
   <string name="Stop">Stop</string>
   <string name="Workout">Training</string>
@@ -81,8 +68,6 @@
   <string name="GPS_satellites">GPS satellieten</string>
   <string name="Start_GPS">Start GPS</string>
   <string name="Duration">Duur</string>
-  <string name="Duration_type">Duur soort</string>
-  <string name="Target_type">Doel type</string>
   <string name="Cancel">Afbreken</string>
   <string name="value">waarde</string>
   <string name="Select_all">Alles selecteren</string>
@@ -102,7 +87,6 @@
   <string name="Map">Kaart</string>
   <string name="Graph">Grafiek</string>
   <string name="Upload">Upload</string>
-  <string name="Configure">Configureer</string>
   <string name="Disconnect">Verbinding verbreken</string>
   <string name="Resume">Doorgaan</string>
   <string name="Save_activity">Activiteit opslaan</string>
@@ -114,11 +98,9 @@
   <string name="Configure_accounts">Accounts configureren</string>
   <string name="Refresh">Veversen</string>
   <string name="Age">Leeftijd</string>
-  <string name="edit">aanpassen</string>
   <string name="Synchronizing">Synchroniseren:</string>
-  <string name="synchronizing_feed">synchroniseren van de feed...</string>
+  <string name="synchronizing_feed">synchroniseren van de feed…</string>
   <string name="OK">OK</string>
-  <string name="Table_format">Tabel formaat</string>
   <string name="Clear_uploads">Uploads wissen</string>
   <string name="Upload_missing_workouts">Upload (ontbrekende) trainingen</string>
   <string name="Disconnect_account">Account ontkoppelen</string>
@@ -128,7 +110,6 @@
   <string name="Recompute_activity">Activiteit herberekenen</string>
   <string name="Configure_heart_rate_zones">Hartslagzones instellen</string>
   <string name="Clear_heart_rate_zone_settings">Hartslagzone instellingen verwijderen</string>
-  <string name="Manage_accounts">Accounts beheren</string>
   <string name="Manage_audio_cues">Beheer auditieve signalen</string>
   <string name="Manage_workouts">Trainingen beheren</string>
   <string name="Settings">Instellingen</string>
@@ -142,22 +123,14 @@
   <string name="Select_type_of_Bluetooth_device">Selecteer het type Bluetooth-apparaat</string>
   <string name="Scanning">Zoeken naar</string>
   <string name="Failed_to_load_workout">De training kon niet geladen worden!!</string>
-  <string name="Icon_list">Pictogram lijst</string>
-  <string name="Problem">Probleem</string>
   <string name="Edit_step">Stap bewerken</string>
   <string name="Create_new_audio_cue_scheme">Nieuwe auditieve signaal schema aanmaken</string>
-  <string name="Great">Geweldig!</string>
-  <string name="OK_darn">OK, verdorie!</string>
   <string name="Yes">Ja</string>
   <string name="Create">Maken</string>
-  <string name="Darn">Verdorie!</string>
-  <string name="Dismiss">Afwijzen</string>
-  <string name="No_way">Absoluut niet</string>
   <string name="No">Nee</string>
-  <string name="Loading">Laden...</string>
+  <string name="Loading">Laden…</string>
   <string name="Saving">Opslaan</string>
-  <string name="Cancellingplease_wait">Annuleren...even geduld aub</string>
-  <string name="try_again_later">Probeer het later opnieuw!</string>
+  <string name="Cancellingplease_wait">Annuleren…even geduld aub</string>
   <string name="Are_you_sure">Weet u het zeker?</string>
   <string name="Configure_audio_cues">Auditieve signalen instellen</string>
   <string name="Downloadeditremove_workouts">Downloaden/bewerken/verwijderen trainingen</string>
@@ -165,7 +138,6 @@
   <string name="Use_your_headset_to_startpauseresume_RunnerUp">Gebruik uw headset om RunnerUp te starten/pauzeren/hervatten</string>
   <string name="Convert_reststep_with_type_distance_to_recoverystep_for_Intervaltab">Omzetten rust-stap met type afstand tot herstel-stap voor Interval-tabblad</string>
   <string name="Convert_reststep_with_type_distance_to_recoverystep_for_Advancedtab">Omzetten rust-stap met type afstand tot herstel-stap voor Geavanceerde-tabblad</string>
-  <string name="mm31kz513sg5">mm(31);kz(5,13);sg(5)</string>
   <string name="Export_database_to_sdcard_eg_for_upgrade">Exporteer de database naar sdcard (bijv. voor een upgrade)</string>
   <string name="Import_database_from_sdcard_eg_after_upgrade">Importeer de database van sdcard (bijv. na een upgrade)</string>
   <string name="Coach_to_help_you_reach_target_if_having_set_target">Coach om u te helpen uw doel te bereiken (als u uw doel reeds heeft ingesteld)</string>
@@ -178,7 +150,7 @@
   <string name="Autolap">Automatische ronde</string>
   <string name="Autolap_m">Automatische ronde (m)</string>
   <string name="Autopause">Automatische pauze</string>
-  <string name="Enable_RunnerUpLive">Aanzetten RunnerUpLive</string>
+  <string name="Enable_RunnerUpLive">Aanzetten Live</string>
   <string name="Headset_key_startstop">Headset-toets start/stop</string>
   <string name="Activity_countdown">Aftellen activiteit</string>
   <string name="Countdown_time_s">Aftellen tijd (s)</string>
@@ -203,7 +175,6 @@
   <string name="Import">Importeer</string>
   <string name="Experimental_HRM_devices">Experimentele HRM apparaten</string>
   <string name="Mock_HRM_devices">Onechte HRM apparaten</string>
-  <string name="About">Over</string>
   <string name="About_RunnerUp">Over RunnerUp</string>
   <string name="Triggers">Triggers</string>
   <string name="Time_triggered_audio_cue">Tijd getriggerde auditieve signaal</string>
@@ -237,7 +208,6 @@
   <string name="History">Historie</string>
   <string name="Basic">Basis</string>
   <string name="Advanced">Geavanceerd</string>
-  <string name="Manual">Handmatig</string>
   <string name="Add_workout_notes">Training notities toevoegen</string>
   <string name="Pruning_deleted_activities_from_database">Verwijderde activiteiten uit de database opschonen</string>
   <string name="Prune">Opschonen</string>
@@ -246,13 +216,12 @@
   <string name="Activity_ready">Activiteit is gereed</string>
   <string name="Ready_to_start_running">Klaar om te beginnen met hardlopen!</string>
   <string name="Searching_for_GPS">Zoeken naar GPS</string>
-  <string name="Activity_ongoing">Activiteit is gaande</string>
-  <string name="RunnerUp_activity_started">RunnerUp activiteit gestart</string>
+    <string name="RunnerUp_activity_started">RunnerUp activiteit gestart</string>
   <string name="Low_HRM_battery_level">Laag batterijniveau HRM </string>
   <string name="High_HRM_battery_level">Hoog batterijniveau HRM</string>
   <string name="Warning">Waarschuwing</string>
-  <string name="The_battery_level_of_your_heartrate_monitor_is_low">Het batterijniveau van uw hartslagmeter is laag.</string>
   <string name="Do_not_show_again">Niet meer laten zien</string>
-  <string name="Waiting_for_phone">Wachten op smartphone</string>
-  <string name="Saving_on_phone">Opslaan op smartphone</string>
+  <string name="Waiting_for_phone" tools:ignore="UnusedResources">Wachten op smartphone</string>
+  <string name="Saving_on_phone" tools:ignore="UnusedResources">Opslaan op smartphone</string>
+  <string name="Unknown">Onbekend</string>
 </resources>
